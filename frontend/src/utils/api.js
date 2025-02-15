@@ -69,7 +69,7 @@ export const login = async (email, password) => {
   });
 
   const data = await res.json();
-  console.log('Debug: Login successful. Response:', data);
+  console.log('Debug: Login successful. Response is:', data);
   return data;
   // axios
   // .post('http://localhost:1337/api/auth/local', {
