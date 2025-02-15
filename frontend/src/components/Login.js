@@ -11,9 +11,11 @@ function Login() {
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
+    console.log(email,password)
     e.preventDefault();
     setError('');
     try {
+      console.log('suer')
       await loginUser(email, password);
       navigate('/');
     } catch (error) {

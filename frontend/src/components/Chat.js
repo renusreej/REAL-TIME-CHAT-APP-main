@@ -147,38 +147,28 @@ function Chat() {
   // Fetch initial messages and set up WebSocket
   useEffect(() => {
     const token = localStorage.getItem('token');
-    if (token) {
-      // Fetch messages from IndexedDB first
-      fetchMessagesFromIndexedDB().then((storedMessages) => {
-        if (storedMessages.length > 0) {
-          setMessages(storedMessages); // Use stored messages from IndexedDB
-        } else {
-          // If no messages in IndexedDB, fetch from API
-          fetchMessages(token).then((data) => {
-            setMessages(data);
-            storeMessagesInIndexedDB(data); // Store fetched messages in IndexedDB for future use
-          });
-        }
-      });
-
-      const socket = initSocket(token);
-      setIsConnected(true);
-
-      socket.on('chat message', (msg) => {
-        console.log('Debug: New message received via WebSocket:', msg);
-        setMessages((prevMessages) => [...prevMessages, msg]); // Append the new message
-        storeMessagesInIndexedDB([msg]); // Store the new message in IndexedDB
-      });
-
-      socket.on('disconnect', () => setIsConnected(false));
-      socket.on('connect', () => setIsConnected(true));
-
-      return () => {
-        socket.disconnect(); // Cleanup socket on component unmount
-      };
-    } else {
+    if (!token) {
       console.error('Token not found in localStorage!');
+      return;
     }
+  
+    const socket = initSocket(token);
+    setIsConnected(true);
+  
+    const handleNewMessage = (msg) => {
+      console.log('Debug: New message received via WebSocket:', msg);
+      setMessages((prevMessages) => [...prevMessages, msg]); // Append new message
+      storeMessagesInIndexedDB([msg]); // Store in IndexedDB
+    };
+  
+    socket.on('chat message', handleNewMessage);
+    socket.on('disconnect', () => setIsConnected(false));
+    socket.on('connect', () => setIsConnected(true));
+  
+    return () => {
+      socket.off('chat message', handleNewMessage); // Cleanup event listener
+      socket.disconnect();
+    };
   }, [user.token]);
 
   // Automatically scroll to the bottom when messages change
@@ -202,7 +192,7 @@ function Chat() {
 
           // After the message is sent, append it to the messages list
           setMessages((prevMessages) => [...prevMessages, newMessage.data]);
-          storeMessagesInIndexedDB([newMessage.data]); // Store the new message in IndexedDB
+          // storeMessagesInIndexedDB([newMessage.data]); // Store the new message in IndexedDB
 
           setInputMessage(''); // Clear the input
           console.log('Debug: Message sent successfully.');

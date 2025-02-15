@@ -16,9 +16,14 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const loginUser = async (email, password) => {
-    const userData = await login(email, password);
-    setUser(userData);
-    localStorage.setItem('token', userData.jwt);
+    console.log('user')
+    try {
+      const userData = await login(email, password);
+      setUser(userData);  // Ensure setUser is available
+      localStorage.setItem('token', userData.jwt);
+    } catch (error) {
+      throw error;  // Re-throw to be caught in handleSubmit
+    }
   };
 
   const registerUser = async (username, email, password) => {
